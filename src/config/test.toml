@@ -1,0 +1,24 @@
+hoge = ""
+
+[app]
+  port = 3333
+  timeoutToGracefulShutdownMs = 5000
+  corsOrigins = "*"
+
+[db]
+  user = "root"
+  name = "test"
+  password = "password"
+  host = "localhost"
+  port = "3306"
+  maxOpenConnection = 100
+  maxIdleConnection = 10
+  connectionMaxLifetimeHour = 1
+
+[redis]
+  url = "localhost:6379"
+  password = ""
+  db = 0
+  poolSizePerCPU = 10
+  minIdleConnection = 0
+  poolTimeoutSeconds= 4

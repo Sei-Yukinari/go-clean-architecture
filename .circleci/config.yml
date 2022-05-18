@@ -1,0 +1,76 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.18
+        environment:
+          GO111MODULE: "on"
+          GO_ENV: test
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: root
+          DB_PASSWORD: password
+          DB_NAME: test
+      - image: circleci/mysql:8.0
+        command: |
+          mysqld --default-authentication-plugin=mysql_native_password
+        environment:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: test
+      - image: circleci/redis:6.0-alpine
+    working_directory: ~/go/src/github.com/Sei-Yukinari/go-clean-architecture
+    steps:
+      - checkout
+      - go_mod_download
+      - run:
+          name: Wait for Redis
+          command: dockerize -wait tcp://127.0.0.1:6379 -timeout 1m
+      - run:
+          name: Wait for RDB
+          command: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
+      - run:
+          name: Migration RDB
+          command: |
+            go install bitbucket.org/liamstask/goose/cmd/goose
+            goose up
+      - run:
+          name: Run unit tests
+          command: go test -v ./src/.../.
+  deploy:
+    shell: /bin/bash
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - checkout
+      - run:
+          name: Deploy
+          command: echo Deployed
+commands:
+  go_mod_download:
+    steps:
+      - restore_cache:
+          name: "Restore modules cache"
+          keys:
+            - go-modules-{{ checksum "go.sum" }}
+      - run:
+          name: "Download dependency modules"
+          command: go mod download
+      - save_cache:
+          name: "Save go modules cache"
+          key: go-modules-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+workflows:
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          context: con
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - main
+                - staging

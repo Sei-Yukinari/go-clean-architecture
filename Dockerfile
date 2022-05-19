@@ -2,12 +2,16 @@ FROM golang:1.18.2-alpine as migrate
 RUN apk update \
     && apk add --no-cache --virtual goose-dependencies \
          build-base \
-         git \
-    && GO111MODULE=on go get bitbucket.org/liamstask/goose/cmd/goose \
+    && go install bitbucket.org/liamstask/goose/cmd/goose@latest \
     && apk del goose-dependencies
 
 FROM golang:1.18.2-alpine as builder
 WORKDIR /app
+# rdb migtation
+COPY --from=migrate /go/bin/goose /usr/local/bin/goose
+COPY ./db /app/db
+RUN goose up
+# app build
 ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
@@ -20,15 +24,9 @@ RUN go build \
     -o /app/build \
     -ldflags '-s -w'
 
-FROM alpine:3.15.0
+FROM alpine:3.15
 WORKDIR /app
-COPY --from=migrate /go/bin/goose /usr/local/bin/
 COPY --from=builder /usr/share/zoneinfo/Asia/Tokyo /usr/share/zoneinfo/Asia/Tokyo
 COPY --from=builder /app/build /app
-COPY ./entrypoint.sh /app
-COPY ./db /app/db
 COPY ./src/config/ /app/src/config/
-RUN apk update \
-    && apk add --no-cache mariadb-client \
-    && rm /var/cache/apk/*
-ENTRYPOINT ["sh", "./entrypoint.sh"]
+ENTRYPOINT ["/app/build"]

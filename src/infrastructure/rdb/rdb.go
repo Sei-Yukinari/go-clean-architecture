@@ -19,7 +19,7 @@ func NewRDB() *gorm.DB {
 		return dbInstance
 	}
 	dbConf := config.Conf.Db
-	conn, err := gorm.Open(mysql.Open(connString(dbConf)), &gorm.Config{
+	conn, err := gorm.Open(mysql.Open(ConnString(dbConf)), &gorm.Config{
 		Logger: newLogger(),
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
@@ -39,7 +39,7 @@ func NewRDB() *gorm.DB {
 	return dbInstance
 }
 
-func connString(dbConf config.Db) string {
+func ConnString(dbConf config.Db) string {
 	return fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbConf.User,

@@ -2,7 +2,10 @@ package testutil
 
 import "gorm.io/gorm"
 
-func Seed(db *gorm.DB, seeds []interface{}) error {
+func Seeds(db *gorm.DB, seeds []interface{}) error {
+	if db == nil {
+		return nil
+	}
 	if seeds == nil {
 		return nil
 	}

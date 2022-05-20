@@ -24,7 +24,7 @@ type GetsInput struct {
 }
 
 func (u *gets) Invoke(ctx context.Context) ([]*model.User, apperror.AppError) {
-	users, err := u.repo.FindAllFromCache(ctx)
+	users, err := u.repo.FindAll(ctx)
 	logger := appcontext.GetLogger(ctx)
 	if err != nil {
 		return nil, apperror.Wrap(err)

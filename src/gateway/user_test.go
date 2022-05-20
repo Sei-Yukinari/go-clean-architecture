@@ -23,10 +23,8 @@ func setup(t *testing.T) (context.Context, *gorm.DB, *cache.Cache, *User) {
 }
 
 func TestUserRepository(t *testing.T) {
-	t.Parallel()
 	ctx, rdb, inMemoryCache, userRepo := setup(t)
 	t.Run("Get User", func(t *testing.T) {
-		t.Parallel()
 		actual := &model.User{
 			ID:   1,
 			Name: "AAAAA",
@@ -34,7 +32,7 @@ func TestUserRepository(t *testing.T) {
 		seed := []interface{}{
 			actual,
 		}
-		err := testutil.Seed(rdb, seed)
+		err := testutil.Seeds(rdb, seed)
 		if err != nil {
 			t.Errorf("error seed data : %v\n", err)
 		}
@@ -47,7 +45,6 @@ func TestUserRepository(t *testing.T) {
 		assert.Equal(t, res.Name, actual.Name)
 	})
 	t.Run("Create User", func(t *testing.T) {
-		t.Parallel()
 		actual := &model.User{
 			ID:   2,
 			Name: "BBBB",
